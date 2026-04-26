@@ -119,6 +119,21 @@ defmodule AshJwt.PlugTest do
       assert conn.assigns[:ash_jwt_error] == :missing_token
     end
 
+    test ":assign_only with a present-but-invalid token assigns the verify reason",
+         %{signer: signer} do
+      token = Helpers.issue(%{"sub" => "d1"}, signer)
+      other = AshJwt.Verifier.signer(:hs256, "different-secret-of-sufficient-length")
+
+      conn =
+        conn(:get, "/protected")
+        |> put_req_header("authorization", "Bearer " <> token)
+        |> JwtPlug.call(JwtPlug.init(signer: other, on_failure: :assign_only))
+
+      refute conn.halted
+      assert conn.assigns[:ash_jwt_error] == :bad_signature
+      assert conn.assigns[:actor] == nil
+    end
+
     test ":halt_with passes the conn + reason to a custom function", %{signer: signer} do
       handler = fn conn, reason ->
         conn

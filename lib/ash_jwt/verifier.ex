@@ -34,7 +34,7 @@ defmodule AshJwt.Verifier do
   """
   @spec signer(atom(), String.t()) :: Joken.Signer.t()
   def signer(alg, secret_or_pem) when alg in @symmetric and is_binary(secret_or_pem) do
-    Joken.Signer.create(Atom.to_string(alg) |> String.upcase(), secret_or_pem)
+    Joken.Signer.create(alg_string(alg), secret_or_pem)
   end
 
   def signer(alg, pem_or_path) when alg in @asymmetric and is_binary(pem_or_path) do
@@ -42,13 +42,15 @@ defmodule AshJwt.Verifier do
 
     case JOSE.JWK.from_pem(pem) do
       %JOSE.JWK{} = jwk ->
-        Joken.Signer.create(Atom.to_string(alg) |> String.upcase(), jwk)
+        Joken.Signer.create(alg_string(alg), jwk)
 
       _ ->
         raise ArgumentError,
               "AshJwt.Verifier.signer/2: could not parse a PEM-encoded JWK from #{inspect(pem_or_path)}"
     end
   end
+
+  defp alg_string(alg) when is_atom(alg), do: alg |> Atom.to_string() |> String.upcase()
 
   defp load_pem("-----BEGIN" <> _ = pem), do: pem
 

@@ -29,13 +29,13 @@ defmodule AshJwt do
           tenant_id: &is_binary/1
         ]
 
-  ## Compatibility with `AshPki.Plug.MTLS`
+  ## Compatibility with the mTLS plug
 
   Set `assign_as: :ash_pki_actor` in plug opts to write into the same
-  conn assign that `AshPki.Plug.MTLS` uses. Downstream plugs and Ash
-  policies continue to work unchanged. The struct shape is different
-  (`AshJwt.Actor` vs `AshPki.Plug.MTLS.Actor`); policies that pattern
-  match on a specific struct must be updated, but policies that read
+  conn assign that an mTLS plug like `ash_pki`'s would use. Downstream
+  plugs and Ash policies continue to work unchanged. The actor struct
+  shape is different from the mTLS actor; policies that pattern match
+  on a specific struct must be updated, but policies that read
   `actor.tenant_id` work either way.
   """
 end

@@ -20,12 +20,15 @@ defmodule AshJwt.Plug do
       `AshJwt.Verifier.verify/3` for the matcher rules.
     * `:assign_as` — atom under `conn.assigns`. Defaults to `:actor`.
       Set to `:ash_pki_actor` to drop into a pipeline that already
-      assumes the `AshPki.Plug.MTLS` assign.
+      assumes an mTLS plug's actor assign.
     * `:on_failure` — `:halt_with_401` (default), `:assign_only`, or
       `{:halt_with, fn conn, reason -> conn end}`.
     * `:scheme` — auth header scheme. Defaults to `"Bearer"`.
 
   ## Failure modes
+
+  The status / error code table is the same one published in `README.md`.
+  Update both together if the wire surface changes.
 
     * `401` with `error: "missing_token"` when there's no Authorization header.
     * `401` with `error: "bad_signature"` when the signature is wrong

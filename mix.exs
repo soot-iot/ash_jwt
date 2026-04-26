@@ -2,6 +2,7 @@ defmodule AshJwt.MixProject do
   use Mix.Project
 
   @version "0.1.0"
+  @source_url "https://github.com/lawik/ash_jwt"
 
   def project do
     [
@@ -10,16 +11,18 @@ defmodule AshJwt.MixProject do
       elixir: "~> 1.16",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      consolidate_protocols: Mix.env() != :test,
+      consolidate_protocols: Mix.env() == :prod,
       deps: deps(),
       description: description(),
-      package: package()
+      package: package(),
+      source_url: @source_url,
+      docs: docs()
     ]
   end
 
   def application do
     [
-      extra_applications: [:logger, :crypto, :public_key]
+      extra_applications: [:logger, :public_key]
     ]
   end
 
@@ -31,7 +34,22 @@ defmodule AshJwt.MixProject do
   end
 
   defp package do
-    [licenses: ["MIT"], links: %{}]
+    [
+      licenses: ["MIT"],
+      files: ~w(lib .formatter.exs mix.exs README* LICENSE* CHANGELOG*),
+      links: %{
+        "GitHub" => @source_url,
+        "Changelog" => "#{@source_url}/blob/main/CHANGELOG.md"
+      }
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      source_ref: "v#{@version}",
+      extras: ["README.md"]
+    ]
   end
 
   defp deps do

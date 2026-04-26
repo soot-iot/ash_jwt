@@ -112,6 +112,23 @@ defmodule AshJwt.PlugTest do
       assert Jason.decode!(conn.resp_body)["error"] == "expired"
     end
 
+    test "not yet valid → 401 not_yet_valid", %{signer: signer} do
+      token =
+        Joken.encode_and_sign(
+          %{
+            "sub" => "d1",
+            "nbf" => System.system_time(:second) + 600,
+            "exp" => System.system_time(:second) + 1200
+          },
+          signer
+        )
+        |> elem(1)
+
+      conn = request(token, signer: signer)
+      assert conn.status == 401
+      assert Jason.decode!(conn.resp_body)["error"] == "not_yet_valid"
+    end
+
     test "claim mismatch → 403 claim_mismatch with the offending claim", %{signer: signer} do
       token = Helpers.issue(%{"sub" => "d1", "iss" => "wrong"}, signer)
 

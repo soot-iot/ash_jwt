@@ -104,7 +104,6 @@ defmodule AshJwt.Verifier do
   defp classify(:signature_error), do: :bad_signature
   defp classify(:invalid_signature), do: :bad_signature
   defp classify(:token_malformed), do: :bad_signature
-  defp classify({:bad_signature, _}), do: :bad_signature
   defp classify(other), do: {:joken_error, other}
 
   defp check_exp(%{"exp" => exp}) when is_integer(exp) do

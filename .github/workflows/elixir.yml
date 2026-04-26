@@ -35,6 +35,14 @@ jobs:
           restore-keys: |
             mix-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-
 
+      - name: Restore PLT cache
+        uses: actions/cache@v4
+        with:
+          path: priv/plts
+          key: plt-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            plt-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-
+
       - run: mix deps.get
       - run: mix deps.unlock --check-unused
       - run: mix deps.audit
@@ -43,3 +51,4 @@ jobs:
       - run: mix credo --strict
       - run: mix sobelow
       - run: mix test
+      - run: mix dialyzer --format github

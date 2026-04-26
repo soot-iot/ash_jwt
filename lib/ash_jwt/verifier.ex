@@ -50,18 +50,16 @@ defmodule AshJwt.Verifier do
     end
   end
 
-  defp load_pem(pem_or_path) do
-    if File.regular?(pem_or_path) do
-      case File.read(pem_or_path) do
-        {:ok, contents} ->
-          contents
+  defp load_pem("-----BEGIN" <> _ = pem), do: pem
 
-        {:error, reason} ->
-          raise ArgumentError,
-                "AshJwt.Verifier.signer/2: could not read PEM file #{inspect(pem_or_path)}: #{:file.format_error(reason)}"
-      end
-    else
-      pem_or_path
+  defp load_pem(path) do
+    case File.read(path) do
+      {:ok, contents} ->
+        contents
+
+      {:error, reason} ->
+        raise ArgumentError,
+              "AshJwt.Verifier.signer/2: could not read PEM file #{inspect(path)}: #{:file.format_error(reason)}"
     end
   end
 

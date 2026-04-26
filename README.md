@@ -45,8 +45,7 @@ a literal, a list (claim must be one of), or a unary predicate
 | status | error code         | when                                              |
 |--------|--------------------|---------------------------------------------------|
 | 401    | `missing_token`    | no `Authorization: Bearer …` header               |
-| 401    | `invalid_token`    | token is structurally malformed                   |
-| 401    | `bad_signature`    | signature doesn't verify against the key          |
+| 401    | `bad_signature`    | signature doesn't verify, or token is malformed   |
 | 401    | `expired`          | `exp` is in the past                              |
 | 401    | `not_yet_valid`    | `nbf` is in the future                            |
 | 403    | `claim_mismatch`   | a claim in `validate` didn't match (claim in body)|

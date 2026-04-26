@@ -73,13 +73,10 @@ defmodule AshJwt.PlugTest do
       assert Jason.decode!(conn.resp_body)["error"] == "missing_token"
     end
 
-    test "malformed token → 401 (invalid_token or bad_signature)", %{signer: signer} do
-      # Joken returns bad_signature first for non-JWT input; an obviously
-      # malformed three-segment garbage string yields invalid_token.
-      # Either is a valid 401 outcome.
+    test "malformed token → 401 bad_signature", %{signer: signer} do
       conn = request("not-a-real-token", signer: signer)
       assert conn.status == 401
-      assert Jason.decode!(conn.resp_body)["error"] in ["invalid_token", "bad_signature"]
+      assert Jason.decode!(conn.resp_body)["error"] == "bad_signature"
     end
 
     test "wrong signing key → 401 bad_signature", %{signer: signer} do

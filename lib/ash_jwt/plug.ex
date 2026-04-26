@@ -28,8 +28,8 @@ defmodule AshJwt.Plug do
   ## Failure modes
 
     * `401` with `error: "missing_token"` when there's no Authorization header.
-    * `401` with `error: "invalid_token"` when the token is malformed.
-    * `401` with `error: "bad_signature"` when the signature is wrong.
+    * `401` with `error: "bad_signature"` when the signature is wrong
+      or the token is structurally malformed.
     * `401` with `error: "expired"` / `"not_yet_valid"` for time-claim issues.
     * `403` with `error: "claim_mismatch"` and `claim:` field when a
       configured claim didn't match.
@@ -103,7 +103,6 @@ defmodule AshJwt.Plug do
   end
 
   defp response_for(:missing_token), do: {401, "missing_token", %{}}
-  defp response_for(:invalid_token), do: {401, "invalid_token", %{}}
   defp response_for(:bad_signature), do: {401, "bad_signature", %{}}
   defp response_for(:expired), do: {401, "expired", %{}}
   defp response_for(:not_yet_valid), do: {401, "not_yet_valid", %{}}
@@ -111,6 +110,6 @@ defmodule AshJwt.Plug do
   defp response_for({:claim_mismatch, name}),
     do: {403, "claim_mismatch", %{claim: to_string(name)}}
 
-  defp response_for({:joken_error, _}), do: {401, "invalid_token", %{}}
-  defp response_for(_), do: {401, "invalid_token", %{}}
+  defp response_for({:joken_error, _}), do: {401, "bad_signature", %{}}
+  defp response_for(_), do: {401, "bad_signature", %{}}
 end

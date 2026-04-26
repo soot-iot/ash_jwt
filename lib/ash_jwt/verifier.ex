@@ -11,8 +11,9 @@ defmodule AshJwt.Verifier do
   every claim in `validate`. Returns `{:ok, claims}` or
   `{:error, reason}`. `reason` is one of:
 
-    * `:invalid_token` — malformed.
-    * `:bad_signature` — signature did not verify against the key.
+    * `:bad_signature` — signature did not verify, or the token is
+      structurally malformed (Joken collapses both into the same
+      `:signature_error` reason at the wire layer).
     * `:expired` — `exp` is in the past.
     * `:not_yet_valid` — `nbf` is in the future.
     * `{:claim_mismatch, name}` — a configured claim didn't match.
@@ -83,7 +84,7 @@ defmodule AshJwt.Verifier do
 
   defp classify(:signature_error), do: :bad_signature
   defp classify(:invalid_signature), do: :bad_signature
-  defp classify(:token_malformed), do: :invalid_token
+  defp classify(:token_malformed), do: :bad_signature
   defp classify({:bad_signature, _}), do: :bad_signature
   defp classify(other), do: {:joken_error, other}
 

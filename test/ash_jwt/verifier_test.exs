@@ -101,8 +101,9 @@ defmodule AshJwt.VerifierTest do
                Verifier.verify(token, signer, aud: ["soot-devices", "internal"])
     end
 
-    test "malformed token", %{signer: signer} do
-      assert {:error, _} = Verifier.verify("not-a-jwt", signer)
+    test "malformed token collapses to bad_signature", %{signer: signer} do
+      assert {:error, :bad_signature} = Verifier.verify("not-a-jwt", signer)
+      assert {:error, :bad_signature} = Verifier.verify("aaa.bbb.ccc", signer)
     end
   end
 

@@ -3,8 +3,8 @@ defmodule AshJwt.PlugTest do
   import Plug.Test
   import Plug.Conn
 
-  alias AshJwt.Plug, as: JwtPlug
   alias AshJwt.{Actor, Test.Helpers}
+  alias AshJwt.Plug, as: JwtPlug
 
   setup do
     {:ok, signer: Helpers.hs_signer()}

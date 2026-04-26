@@ -112,4 +112,62 @@ defmodule AshJwt.VerifierTest do
       assert %Joken.Signer{} = AshJwt.Verifier.signer(:hs256, "abc-of-sufficient-length")
     end
   end
+
+  describe "signer/2 asymmetric (RS256)" do
+    setup do
+      private = X509.PrivateKey.new_rsa(2048)
+      public = X509.PublicKey.derive(private)
+      private_pem = X509.PrivateKey.to_pem(private)
+      public_pem = X509.PublicKey.to_pem(public)
+
+      tmp = Path.join(System.tmp_dir!(), "ash_jwt_pub_#{System.unique_integer([:positive])}.pem")
+      File.write!(tmp, public_pem)
+      on_exit(fn -> File.rm(tmp) end)
+
+      {:ok,
+       private_signer: signer_for_jwk(:rs256, private_pem),
+       public_pem: public_pem,
+       public_pem_path: tmp}
+    end
+
+    test "PEM string round-trips a verified token", %{
+      private_signer: priv_signer,
+      public_pem: public_pem
+    } do
+      pub_signer = AshJwt.Verifier.signer(:rs256, public_pem)
+      token = Helpers.issue(%{"sub" => "device-rsa"}, priv_signer)
+
+      assert {:ok, claims} = Verifier.verify(token, pub_signer)
+      assert claims["sub"] == "device-rsa"
+    end
+
+    test "PEM file path round-trips a verified token", %{
+      private_signer: priv_signer,
+      public_pem_path: path
+    } do
+      pub_signer = AshJwt.Verifier.signer(:rs256, path)
+      token = Helpers.issue(%{"sub" => "device-rsa-path"}, priv_signer)
+
+      assert {:ok, claims} = Verifier.verify(token, pub_signer)
+      assert claims["sub"] == "device-rsa-path"
+    end
+
+    test "missing PEM file raises ArgumentError that names the path" do
+      path = "/tmp/no-such-ash-jwt-pem-#{System.unique_integer([:positive])}.pem"
+
+      assert_raise ArgumentError, ~r/#{Regex.escape(path)}/, fn ->
+        AshJwt.Verifier.signer(:rs256, path)
+      end
+    end
+
+    test "garbage PEM string raises ArgumentError" do
+      assert_raise ArgumentError, ~r/parse/, fn ->
+        AshJwt.Verifier.signer(:rs256, "-----BEGIN garbage not actually a key-----")
+      end
+    end
+  end
+
+  defp signer_for_jwk(alg, private_pem) do
+    Joken.Signer.create(alg |> Atom.to_string() |> String.upcase(), %{"pem" => private_pem})
+  end
 end

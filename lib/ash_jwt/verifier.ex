@@ -40,9 +40,12 @@ defmodule AshJwt.Verifier do
   def signer(alg, pem_or_path) when alg in @asymmetric and is_binary(pem_or_path) do
     pem = load_pem(pem_or_path)
 
+    # Validate the PEM parses to a JWK before handing the bytes to Joken,
+    # so a bad PEM at boot raises ArgumentError that names the path
+    # rather than crashing inside Joken.Signer.
     case JOSE.JWK.from_pem(pem) do
-      %JOSE.JWK{} = jwk ->
-        Joken.Signer.create(alg_string(alg), jwk)
+      %JOSE.JWK{kty: kty} when kty != :undefined ->
+        Joken.Signer.create(alg_string(alg), %{"pem" => pem})
 
       _ ->
         raise ArgumentError,

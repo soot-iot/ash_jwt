@@ -58,7 +58,10 @@ defmodule AshJwt.MixProject do
       {:joken, "~> 2.6"},
       {:jose, "~> 1.11"},
       {:plug, "~> 1.19"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4"},
+
+      # Test
+      {:x509, "~> 0.8", only: :test}
     ]
   end
 end

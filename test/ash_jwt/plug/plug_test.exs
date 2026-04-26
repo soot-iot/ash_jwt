@@ -123,6 +123,18 @@ defmodule AshJwt.PlugTest do
     end
   end
 
+  describe "response_for/1 fallbacks" do
+    test "{:joken_error, _} surfaces as 401 bad_signature" do
+      assert {401, "bad_signature", %{}} =
+               JwtPlug.response_for({:joken_error, :some_new_reason})
+    end
+
+    test "unknown reason atom surfaces as 401 bad_signature" do
+      assert {401, "bad_signature", %{}} =
+               JwtPlug.response_for(:wholly_unrecognised)
+    end
+  end
+
   describe ":on_failure modes" do
     test ":assign_only continues with ash_jwt_error set", %{signer: signer} do
       conn =

@@ -113,14 +113,15 @@ defmodule AshJwt.Plug do
     end
   end
 
-  defp response_for(:missing_token), do: {401, "missing_token", %{}}
-  defp response_for(:bad_signature), do: {401, "bad_signature", %{}}
-  defp response_for(:expired), do: {401, "expired", %{}}
-  defp response_for(:not_yet_valid), do: {401, "not_yet_valid", %{}}
+  @doc false
+  def response_for(:missing_token), do: {401, "missing_token", %{}}
+  def response_for(:bad_signature), do: {401, "bad_signature", %{}}
+  def response_for(:expired), do: {401, "expired", %{}}
+  def response_for(:not_yet_valid), do: {401, "not_yet_valid", %{}}
 
-  defp response_for({:claim_mismatch, name}),
+  def response_for({:claim_mismatch, name}),
     do: {403, "claim_mismatch", %{claim: to_string(name)}}
 
-  defp response_for({:joken_error, _}), do: {401, "bad_signature", %{}}
-  defp response_for(_), do: {401, "bad_signature", %{}}
+  def response_for({:joken_error, _}), do: {401, "bad_signature", %{}}
+  def response_for(_), do: {401, "bad_signature", %{}}
 end

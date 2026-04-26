@@ -71,11 +71,13 @@ a literal, a list (claim must be one of), or a unary predicate
 mix test
 ```
 
-26 tests cover `Verifier.verify/3` (happy path with literal / list /
-predicate `validate` matchers; failures: bad signature, expired,
+Covers `Verifier.verify/3` (happy path with literal / list / predicate
+/ map `validate` matchers; failures: bad signature, expired,
 not-yet-valid, claim mismatch in three flavours, malformed input),
-`Actor.from_claims/2` (standard fields, `tid` fallback for
-`tenant_id`, non-integer `exp` lands as `nil`), and the plug across
-init validation, every documented response code, the
-`:assign_only` and `{:halt_with, fun}` failure modes, and the
-`assign_as` re-routing for `ash_pki_actor` compatibility.
+`Verifier.signer/2` for both HS and RS algorithms (PEM string and
+PEM file path), `Actor.from_claims/2` (standard fields, `tid`
+fallback and precedence for `tenant_id`, non-integer / missing `exp`
+land as `nil`), and the plug across init validation, every
+documented response code, the `:assign_only` and `{:halt_with, fun}`
+failure modes, the `{:joken_error, _}` and unknown-reason fallbacks,
+and the `assign_as` re-routing for mTLS-actor compatibility.

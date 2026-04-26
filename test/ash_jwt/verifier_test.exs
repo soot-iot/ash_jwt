@@ -15,11 +15,18 @@ defmodule AshJwt.VerifierTest do
       assert claims["sub"] == "device-001"
     end
 
-    test "checks every claim in `validate`", %{signer: signer} do
+    test "checks every claim in `validate` (keyword)", %{signer: signer} do
       token = Helpers.issue(%{"sub" => "d1", "tenant_id" => "acme", "iss" => "x"}, signer)
 
       assert {:ok, _} =
                Verifier.verify(token, signer, iss: "x", tenant_id: &is_binary/1)
+    end
+
+    test "checks every claim in `validate` (map)", %{signer: signer} do
+      token = Helpers.issue(%{"sub" => "d1", "tenant_id" => "acme", "iss" => "x"}, signer)
+
+      assert {:ok, _} =
+               Verifier.verify(token, signer, %{iss: "x", tenant_id: &is_binary/1})
     end
 
     test "list expectation matches when value is in the list", %{signer: signer} do

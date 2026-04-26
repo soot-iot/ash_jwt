@@ -38,15 +38,31 @@ defmodule AshJwt.Verifier do
   end
 
   def signer(alg, pem_or_path) when alg in @asymmetric and is_binary(pem_or_path) do
-    pem =
-      if File.regular?(pem_or_path) do
-        File.read!(pem_or_path)
-      else
-        pem_or_path
-      end
+    pem = load_pem(pem_or_path)
 
-    jwk = JOSE.JWK.from_pem(pem)
-    Joken.Signer.create(Atom.to_string(alg) |> String.upcase(), jwk)
+    case JOSE.JWK.from_pem(pem) do
+      %JOSE.JWK{} = jwk ->
+        Joken.Signer.create(Atom.to_string(alg) |> String.upcase(), jwk)
+
+      _ ->
+        raise ArgumentError,
+              "AshJwt.Verifier.signer/2: could not parse a PEM-encoded JWK from #{inspect(pem_or_path)}"
+    end
+  end
+
+  defp load_pem(pem_or_path) do
+    if File.regular?(pem_or_path) do
+      case File.read(pem_or_path) do
+        {:ok, contents} ->
+          contents
+
+        {:error, reason} ->
+          raise ArgumentError,
+                "AshJwt.Verifier.signer/2: could not read PEM file #{inspect(pem_or_path)}: #{:file.format_error(reason)}"
+      end
+    else
+      pem_or_path
+    end
   end
 
   @doc """

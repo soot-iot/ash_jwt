@@ -29,6 +29,20 @@ defmodule AshJwt.PlugTest do
       assert opts[:on_failure] == :halt_with_401
       assert opts[:scheme] == "Bearer"
     end
+
+    test "rejects an :on_failure handler with the wrong arity", %{signer: signer} do
+      handler = fn _reason -> :nope end
+
+      assert_raise ArgumentError, ~r/on_failure/, fn ->
+        JwtPlug.init(signer: signer, on_failure: {:halt_with, handler})
+      end
+    end
+
+    test "rejects an unknown :on_failure value", %{signer: signer} do
+      assert_raise ArgumentError, ~r/on_failure/, fn ->
+        JwtPlug.init(signer: signer, on_failure: :explode)
+      end
+    end
   end
 
   describe "happy path" do

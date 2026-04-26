@@ -49,6 +49,14 @@ defmodule AshJwt.Plug do
       raise ArgumentError, "AshJwt.Plug requires `:signer` (build with AshJwt.Verifier.signer/2)"
     end
 
+    case Keyword.get(opts, :on_failure) do
+      nil -> :ok
+      :halt_with_401 -> :ok
+      :assign_only -> :ok
+      {:halt_with, fun} when is_function(fun, 2) -> :ok
+      other -> raise ArgumentError, "AshJwt.Plug `:on_failure` invalid: #{inspect(other)}"
+    end
+
     Keyword.merge(
       [
         validate: [],

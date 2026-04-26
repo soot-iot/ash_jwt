@@ -114,6 +114,10 @@ defmodule AshJwt.Verifier do
 
   defp matches?(value, nil), do: is_nil(value)
   defp matches?(value, fun) when is_function(fun, 1), do: !!fun.(value)
+
+  defp matches?(value, list) when is_list(list) and is_list(value),
+    do: Enum.any?(value, &(&1 in list))
+
   defp matches?(value, list) when is_list(list), do: value in list
   defp matches?(value, expected), do: value == expected
 end

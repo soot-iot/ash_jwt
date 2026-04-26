@@ -27,6 +27,19 @@ defmodule AshJwt.VerifierTest do
       assert {:ok, _} = Verifier.verify(token, signer, aud: ["soot-devices", "other"])
     end
 
+    test "list-valued claim matches when any audience is expected", %{signer: signer} do
+      token = Helpers.issue(%{"sub" => "d1", "aud" => ["soot-devices", "internal"]}, signer)
+
+      assert {:ok, _} =
+               Verifier.verify(token, signer, aud: ["soot-devices", "internal"])
+
+      assert {:ok, _} =
+               Verifier.verify(token, signer, aud: ["internal"])
+
+      assert {:error, {:claim_mismatch, :aud}} =
+               Verifier.verify(token, signer, aud: ["other"])
+    end
+
     test "nil expectation matches only when the claim is absent", %{signer: signer} do
       absent = Helpers.issue(%{"sub" => "d1"}, signer)
       assert {:ok, _} = Verifier.verify(absent, signer, tenant_id: nil)

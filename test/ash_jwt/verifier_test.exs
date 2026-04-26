@@ -47,8 +47,11 @@ defmodule AshJwt.VerifierTest do
     test "not yet valid", %{signer: signer} do
       token =
         Joken.encode_and_sign(
-          %{"sub" => "d1", "nbf" => System.system_time(:second) + 600,
-            "exp" => System.system_time(:second) + 1200},
+          %{
+            "sub" => "d1",
+            "nbf" => System.system_time(:second) + 600,
+            "exp" => System.system_time(:second) + 1200
+          },
           signer
         )
         |> elem(1)

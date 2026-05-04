@@ -100,7 +100,8 @@ defmodule AshJwt.Verifier do
     end
   end
 
-  defp pop_leeway(opts) when is_list(opts), do: Keyword.pop(opts, :leeway, @default_leeway_seconds)
+  defp pop_leeway(opts) when is_list(opts),
+    do: Keyword.pop(opts, :leeway, @default_leeway_seconds)
 
   defp pop_leeway(opts) when is_map(opts) do
     {Map.get(opts, :leeway, @default_leeway_seconds), Map.delete(opts, :leeway)}

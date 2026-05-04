@@ -89,6 +89,45 @@ defmodule AshJwt.VerifierTest do
       assert {:error, :not_yet_valid} = Verifier.verify(token, signer)
     end
 
+    test "expired within default leeway (30s) is still accepted", %{signer: signer} do
+      token =
+        Joken.encode_and_sign(%{"sub" => "d1", "exp" => System.system_time(:second) - 5}, signer)
+        |> elem(1)
+
+      assert {:ok, _} = Verifier.verify(token, signer)
+    end
+
+    test "expired beyond default leeway is rejected", %{signer: signer} do
+      token =
+        Joken.encode_and_sign(%{"sub" => "d1", "exp" => System.system_time(:second) - 60}, signer)
+        |> elem(1)
+
+      assert {:error, :expired} = Verifier.verify(token, signer)
+    end
+
+    test "nbf within default leeway is accepted", %{signer: signer} do
+      token =
+        Joken.encode_and_sign(
+          %{
+            "sub" => "d1",
+            "nbf" => System.system_time(:second) + 5,
+            "exp" => System.system_time(:second) + 60
+          },
+          signer
+        )
+        |> elem(1)
+
+      assert {:ok, _} = Verifier.verify(token, signer)
+    end
+
+    test "leeway: 0 enforces strict expiry", %{signer: signer} do
+      token =
+        Joken.encode_and_sign(%{"sub" => "d1", "exp" => System.system_time(:second) - 1}, signer)
+        |> elem(1)
+
+      assert {:error, :expired} = Verifier.verify(token, signer, leeway: 0)
+    end
+
     test "claim mismatch (literal)", %{signer: signer} do
       token = Helpers.issue(%{"sub" => "d1", "iss" => "wrong"}, signer)
       assert {:error, {:claim_mismatch, :iss}} = Verifier.verify(token, signer, iss: "right")

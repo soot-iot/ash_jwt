@@ -71,24 +71,39 @@ defmodule AshJwt.Verifier do
   @doc """
   Verify `token` against `signer` and `validate`.
 
-  `validate` is a keyword list / map of `claim => expected`. The
-  expected may be:
+  Options accepted as the third argument (or keyword merged into a
+  validate keyword list):
 
-    * a literal value — equality
-    * a function `(value -> boolean)` — runs against the claim
-    * a list — claim must be one of these
+    * `:leeway` — clock skew tolerance, in seconds, applied to `exp`
+      and `nbf` checks. Default `30`. Set to `0` for strict checking.
+    * any other key — treated as a claim name to validate, with the
+      expected value. The expected may be:
+
+      * a literal value — equality
+      * a function `(value -> boolean)` — runs against the claim
+      * a list — claim must be one of these
 
   Built-in `exp` and `nbf` are checked automatically; you don't need
-  to put them in `validate`.
+  to put them in the options map.
   """
+  @default_leeway_seconds 30
+
   @spec verify(String.t(), Joken.Signer.t(), validate()) :: verify_result()
-  def verify(token, %Joken.Signer{} = signer, validate \\ []) do
+  def verify(token, %Joken.Signer{} = signer, opts \\ []) do
+    {leeway, validate} = pop_leeway(opts)
+
     with {:ok, claims} <- decode_and_verify(token, signer),
-         :ok <- check_exp(claims),
-         :ok <- check_nbf(claims),
+         :ok <- check_exp(claims, leeway),
+         :ok <- check_nbf(claims, leeway),
          :ok <- check_validate(claims, validate) do
       {:ok, claims}
     end
+  end
+
+  defp pop_leeway(opts) when is_list(opts), do: Keyword.pop(opts, :leeway, @default_leeway_seconds)
+
+  defp pop_leeway(opts) when is_map(opts) do
+    {Map.get(opts, :leeway, @default_leeway_seconds), Map.delete(opts, :leeway)}
   end
 
   defp decode_and_verify(token, signer) do
@@ -106,17 +121,17 @@ defmodule AshJwt.Verifier do
   defp classify(:token_malformed), do: :bad_signature
   defp classify(other), do: {:joken_error, other}
 
-  defp check_exp(%{"exp" => exp}) when is_integer(exp) do
-    if exp < System.system_time(:second), do: {:error, :expired}, else: :ok
+  defp check_exp(%{"exp" => exp}, leeway) when is_integer(exp) do
+    if exp + leeway < System.system_time(:second), do: {:error, :expired}, else: :ok
   end
 
-  defp check_exp(_), do: :ok
+  defp check_exp(_, _), do: :ok
 
-  defp check_nbf(%{"nbf" => nbf}) when is_integer(nbf) do
-    if nbf > System.system_time(:second), do: {:error, :not_yet_valid}, else: :ok
+  defp check_nbf(%{"nbf" => nbf}, leeway) when is_integer(nbf) do
+    if nbf - leeway > System.system_time(:second), do: {:error, :not_yet_valid}, else: :ok
   end
 
-  defp check_nbf(_), do: :ok
+  defp check_nbf(_, _), do: :ok
 
   defp check_validate(claims, validate) do
     Enum.reduce_while(validate, :ok, fn {name, expected}, :ok ->

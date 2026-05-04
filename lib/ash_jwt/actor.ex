@@ -12,6 +12,19 @@ defmodule AshJwt.Actor do
     * `claims`    — every claim from the verified payload (raw map).
     * `token`     — the original encoded JWT (kept for upstream services
       that need to forward it).
+
+  ## Missing-claim semantics
+
+  Every field on the actor (except `claims` and `token`) defaults to
+  `nil` if the corresponding claim is absent from the token. JWT
+  semantics make "claim absent" and "claim present with JSON null"
+  indistinguishable after parsing, so we do not try to surface that
+  distinction.
+
+  Apps that *require* a tenant id should enforce it at the policy
+  layer (e.g. `policy actor_attribute_equals(:tenant_id, ...)` or
+  `forbid_if attribute_equals(:tenant_id, nil)`) rather than expecting
+  `from_claims/2` to fail.
   """
 
   defstruct [
